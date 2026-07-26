@@ -1,0 +1,14 @@
+node_modules/
+dist/
+android/**/build/
+android/.gradle/
+android/local.properties
+*.apk
+*.keystore
+scrape-output.json
+coverage/
+.DS_Store
+imports/
+.figma/
+.tools/
+Текстовый документ.txt
