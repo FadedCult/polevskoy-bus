@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
-import { ArrowLeft, Clock3, Route as RouteIcon } from "lucide-react"
+import { useState } from "react"
+import { ArrowLeft, Clock3, Map, Route as RouteIcon } from "lucide-react"
 import Header from "@/components/Header"
 import {
   getPreparedDetailedSchedule,
@@ -7,7 +7,6 @@ import {
   getRouteEffectiveDate,
   getRouteStopSections,
   officialRoutes,
-  routeCategories,
 } from "@/data/transitData"
 import type { DetailedScheduleRow, OfficialRoute } from "@/types"
 
@@ -32,7 +31,13 @@ function getCellClasses(className: string, isHeader = false) {
 }
 
 function renderCellText(text: string) {
-  return text.trim() || "—"
+  return text.trim() || "-"
+}
+
+function getRouteNumberSize(routeNumber: string) {
+  if (routeNumber.length >= 4) return "text-[28px]"
+  if (routeNumber.length >= 3) return "text-[34px]"
+  return "text-[40px]"
 }
 
 function RouteChooser({
@@ -42,15 +47,6 @@ function RouteChooser({
   routes: OfficialRoute[]
   onSelect: (route: OfficialRoute) => void
 }) {
-  const counts = useMemo(
-    () =>
-      routeCategories.map((category) => ({
-        category,
-        count: routes.filter((route) => route.category === category).length,
-      })),
-    [routes],
-  )
-
   return (
     <>
       <div className="px-4 pt-1 pb-4">
@@ -62,7 +58,7 @@ function RouteChooser({
         </p>
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-5">
         <div className="grid grid-cols-3 gap-3">
           {routes.map((route) => (
             <button
@@ -70,26 +66,13 @@ function RouteChooser({
               onClick={() => onSelect(route)}
               className="flex h-[88px] items-center justify-center rounded-[18px] bg-[#34C759] px-2 text-center shadow-[0_4px_10px_rgba(52,199,89,0.25)]"
               aria-label={`Открыть маршрут ${route.number}`}
+              type="button"
             >
-              <span className="text-[44px] font-bold leading-none text-white">
+              <span className={`${getRouteNumberSize(route.number)} font-bold leading-none text-white`}>
                 {route.number}
               </span>
             </button>
           ))}
-        </div>
-      </div>
-
-      <div className="px-4 pb-5">
-        <div className="rounded-[14px] bg-[#edf4fa] px-4 py-4">
-          <p className="text-[12px] font-semibold text-[#333]">Что отображается</p>
-          <div className="mt-3 grid grid-cols-1 gap-2">
-            {counts.map((item) => (
-              <div key={item.category} className="flex items-center justify-between rounded-[10px] bg-white px-3 py-2">
-                <span className="text-[11px] font-medium text-[#333]">{item.category}</span>
-                <span className="text-[11px] font-semibold text-[#34C759]">{item.count}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </>
@@ -126,7 +109,7 @@ function ShortScheduleTables({ route }: { route: OfficialRoute }) {
                               rowIndex === 0 ? "bg-[rgba(52,199,89,0.12)] font-semibold" : ""
                             }`}
                           >
-                            {cell || "—"}
+                            {cell || "-"}
                           </td>
                         ))}
                       </tr>
@@ -253,9 +236,11 @@ function DetailedSchedule({ route }: { route: OfficialRoute }) {
 function RouteDetails({
   route,
   onBack,
+  onOpenMap,
 }: {
   route: OfficialRoute
   onBack: () => void
+  onOpenMap: (routeNumber: string) => void
 }) {
   const effectiveDate = getRouteEffectiveDate(route)
 
@@ -265,19 +250,28 @@ function RouteDetails({
         <button
           onClick={onBack}
           className="mb-4 flex items-center gap-2 rounded-full bg-[#edf4fa] px-3 py-2 text-[11px] font-semibold text-[#333]"
+          type="button"
         >
           <ArrowLeft size={15} />
           К списку маршрутов
         </button>
 
         <div className="rounded-[16px] bg-[#edf4fa] px-4 py-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-[#34C759] px-3 py-1 text-[11px] font-bold text-white">
               Маршрут {route.number}
             </span>
             <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#333]">
               {getRouteCategoryBadge(route.category)}
             </span>
+            <button
+              onClick={() => onOpenMap(route.number)}
+              className="ml-auto flex items-center gap-2 rounded-full bg-white px-3 py-2 text-[11px] font-semibold text-[#333]"
+              type="button"
+            >
+              <Map size={14} color="#34C759" />
+              Открыть на карте
+            </button>
           </div>
           <h1 className="mt-3 text-[22px] font-bold leading-tight text-[#333]">
             {route.title}
@@ -302,14 +296,14 @@ function RouteDetails({
   )
 }
 
-export default function RoutesPage() {
+export default function RoutesPage({ onOpenRouteMap }: { onOpenRouteMap: (routeNumber: string) => void }) {
   const [selectedRoute, setSelectedRoute] = useState<OfficialRoute | null>(null)
 
   return (
     <div className="min-h-full bg-[#d9d9d9]">
       <Header city="Полевской" />
       {selectedRoute ? (
-        <RouteDetails route={selectedRoute} onBack={() => setSelectedRoute(null)} />
+        <RouteDetails route={selectedRoute} onBack={() => setSelectedRoute(null)} onOpenMap={onOpenRouteMap} />
       ) : (
         <RouteChooser routes={officialRoutes} onSelect={setSelectedRoute} />
       )}

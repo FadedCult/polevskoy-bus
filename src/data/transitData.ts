@@ -45,6 +45,7 @@ export interface PreparedDetailedSchedule {
 
 export const officialStops = transitData.officialStops
 export const officialRoutes = transitData.routes
+export const routeNumbers = [...new Set(officialRoutes.map((route) => route.number))]
 export const routeCategories: RouteCategory[] = [
   "Городские",
   "Пригородные",

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "format": "oxfmt",
     "android:sync": "npm run build && cap sync android",
-    "android:apk": "npm run android:sync && cd android && gradlew.bat assembleDebug"
+    "android:apk": "set \"JAVA_HOME=%cd%\\.tools\\jdk\\jdk-21.0.11+10\" && set \"PATH=%JAVA_HOME%\\bin;%PATH%\" && npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "android:apk:copy": "npm run android:apk && node scripts/copy-apk.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",
